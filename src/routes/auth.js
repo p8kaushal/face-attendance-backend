@@ -3,10 +3,10 @@ import passport from 'passport';
 
 const router = express.Router();
 
-router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-router.get('/github/callback', 
-  passport.authenticate('github', { failureRedirect: '/' }),
+router.get('/google/callback', 
+  passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
     res.redirect(`${frontendUrl}?auth=success`);
