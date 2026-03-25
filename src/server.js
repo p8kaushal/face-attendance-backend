@@ -3,6 +3,7 @@ import cors from 'cors';
 import session from 'express-session';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy as GitHubStrategy } from 'passport-github2';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
@@ -27,10 +28,23 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim().toLowerCase());
+const ADMIN_USERS = (process.env.ADMIN_USERS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((obj, done) => done(null, obj));
+function isAdmin(user) {
+  if (!user) return false;
+  const identifier = (user.email || '').toLowerCase();
+  const username = (user.username || '').toLowerCase();
+  return ADMIN_USERS.includes(identifier) || ADMIN_USERS.includes(username);
+}
+
+passport.serializeUser((user, done) => done(null, JSON.stringify(user)));
+passport.deserializeUser((str, done) => {
+  try {
+    done(null, JSON.parse(str));
+  } catch (e) {
+    done(e);
+  }
+});
 
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
@@ -38,11 +52,29 @@ passport.use(new GoogleStrategy({
   callbackURL: process.env.GOOGLE_CALLBACK_URL
 }, (accessToken, refreshToken, profile, done) => {
   const user = {
+    provider: 'google',
     id: profile.id,
     email: profile.emails?.[0]?.value,
     name: profile.displayName,
     avatar: profile.photos?.[0]?.value,
-    isAdmin: ADMIN_EMAILS.includes(profile.emails?.[0]?.value?.toLowerCase())
+    isAdmin: isAdmin({ email: profile.emails?.[0]?.value })
+  };
+  return done(null, user);
+}));
+
+passport.use(new GitHubStrategy({
+  clientID: process.env.GITHUB_CLIENT_ID,
+  clientSecret: process.env.GITHUB_CLIENT_SECRET,
+  callbackURL: process.env.GITHUB_CALLBACK_URL
+}, (accessToken, refreshToken, profile, done) => {
+  const user = {
+    provider: 'github',
+    id: profile.id,
+    username: profile.username,
+    email: profile.emails?.[0]?.value,
+    name: profile.displayName,
+    avatar: profile.photos?.[0]?.value,
+    isAdmin: isAdmin({ username: profile.username, email: profile.emails?.[0]?.value })
   };
   return done(null, user);
 }));

@@ -1,11 +1,11 @@
 # FaceTrack
 
-A modern, minimal face attendance tracking system with Google OAuth authentication and PostgreSQL storage.
+A modern, minimal face attendance tracking system with social authentication and PostgreSQL storage.
 
 ## Features
 
 - Face recognition attendance (check-in/check-out)
-- Google OAuth authentication
+- Google & GitHub OAuth authentication
 - Admin-only user registration
 - Attendance history with export
 - Modern, responsive UI
@@ -15,7 +15,7 @@ A modern, minimal face attendance tracking system with Google OAuth authenticati
 - **Frontend**: Vanilla JS, face-api.js (browser-based face recognition)
 - **Backend**: Node.js, Express, Passport.js
 - **Database**: PostgreSQL
-- **Auth**: Google OAuth
+- **Auth**: Google OAuth & GitHub OAuth
 
 ## Setup
 
@@ -23,16 +23,18 @@ A modern, minimal face attendance tracking system with Google OAuth authenticati
 
 Create a free PostgreSQL database at [Neon](https://neon.tech) or [Supabase](https://supabase.com).
 
-### 2. Google OAuth App
+### 2. OAuth Apps
 
+**Google:**
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing one
-3. Go to APIs & Services → Credentials
-4. Create OAuth Client ID (Web application)
-5. Set:
-   - Authorized JavaScript origins: `http://localhost:3001`
-   - Authorized redirect URIs: `http://localhost:3000/auth/google/callback`
-6. Copy Client ID and Client Secret
+2. APIs & Services → Credentials → Create OAuth Client ID
+3. Authorized origins: `http://localhost:3001`
+4. Redirect URI: `http://localhost:3000/auth/google/callback`
+
+**GitHub:**
+1. Go to GitHub Settings → Developer settings → OAuth Apps
+2. Homepage URL: `http://localhost:3001`
+3. Callback URL: `http://localhost:3000/auth/github/callback`
 
 ### 3. Backend Setup
 
@@ -44,9 +46,11 @@ cp .env.example .env
 Edit `.env`:
 ```
 DATABASE_URL=postgresql://user:password@host:5432/face_attendance
-GOOGLE_CLIENT_ID=your-client-id
-GOOGLE_CLIENT_SECRET=your-client-secret
-ADMIN_EMAILS=your-email@gmail.com
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+ADMIN_USERS=your-email@gmail.com,your-github-username
 ```
 
 ```bash
@@ -63,9 +67,9 @@ python3 -m http.server 3001
 
 ### 5. Access
 
-Open http://localhost:3001 and sign in with Google.
+Open http://localhost:3001 and sign in with Google or GitHub.
 
-Only users listed in `ADMIN_EMAILS` can register new employees.
+Only users/emails/usernames listed in `ADMIN_USERS` can register new employees.
 
 ## Deployment
 
@@ -73,7 +77,7 @@ Only users listed in `ADMIN_EMAILS` can register new employees.
 
 1. Deploy backend code
 2. Set environment variables
-3. Update Google OAuth redirect URI to your production URL
+3. Update OAuth redirect URIs to your production URL
 
 ### Frontend (GitHub Pages)
 
@@ -82,7 +86,9 @@ Update `API_URL` in `index.html` to point to your backend.
 ## API Endpoints
 
 - `GET /auth/google` - Google login
-- `GET /auth/google/callback` - OAuth callback
+- `GET /auth/google/callback` - Google OAuth callback
+- `GET /auth/github` - GitHub login
+- `GET /auth/github/callback` - GitHub OAuth callback
 - `GET /auth/logout` - Logout
 - `GET /api/me` - Current user
 - `GET /api/users` - List users (auth required)
