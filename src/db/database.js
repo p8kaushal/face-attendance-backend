@@ -30,6 +30,31 @@ export async function initDB() {
     )
   `);
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS admin_users (
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(50) UNIQUE NOT NULL,
+      password_hash VARCHAR(255) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  const adminUsername = process.env.ADMIN_USERNAME;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (adminUsername && adminPassword) {
+    const crypto = await import('crypto');
+    const hashedPassword = crypto.default.createHash('sha256')
+      .update(adminPassword + process.env.SESSION_SECRET)
+      .digest('hex');
+    
+    await pool.query(`
+      INSERT INTO admin_users (username, password_hash)
+      VALUES ($1, $2)
+      ON CONFLICT (username) DO NOTHING
+    `, [adminUsername, hashedPassword]);
+  }
+
   console.log('Database initialized');
 }
 

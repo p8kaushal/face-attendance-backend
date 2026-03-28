@@ -6,6 +6,7 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as GitHubStrategy } from 'passport-github2';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
+import localAuthRoutes from './routes/localAuth.js';
 import userRoutes from './routes/users.js';
 import attendanceRoutes from './routes/attendance.js';
 import { initDB } from './db/database.js';
@@ -80,6 +81,7 @@ passport.use(new GitHubStrategy({
 }));
 
 app.use('/auth', authRoutes);
+app.use('/auth/local', localAuthRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/attendance', attendanceRoutes);
 

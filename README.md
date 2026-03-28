@@ -1,11 +1,11 @@
 # FaceTrack
 
-A modern, minimal face attendance tracking system with social authentication and PostgreSQL storage.
+A modern, minimal face attendance tracking system with multiple authentication options and PostgreSQL storage.
 
 ## Features
 
 - Face recognition attendance (check-in/check-out)
-- Google & GitHub OAuth authentication
+- **Multiple auth options**: Local username/password, Google OAuth, GitHub OAuth
 - Admin-only user registration
 - Attendance history with export
 - Modern, responsive UI
@@ -15,7 +15,7 @@ A modern, minimal face attendance tracking system with social authentication and
 - **Frontend**: Vanilla JS, face-api.js (browser-based face recognition)
 - **Backend**: Node.js, Express, Passport.js
 - **Database**: PostgreSQL
-- **Auth**: Google OAuth & GitHub OAuth
+- **Auth**: Local, Google OAuth & GitHub OAuth
 
 ## Setup
 
@@ -23,7 +23,7 @@ A modern, minimal face attendance tracking system with social authentication and
 
 Create a free PostgreSQL database at [Neon](https://neon.tech) or [Supabase](https://supabase.com).
 
-### 2. OAuth Apps
+### 2. OAuth Apps (Optional)
 
 **Google:**
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
@@ -46,11 +46,12 @@ cp .env.example .env
 Edit `.env`:
 ```
 DATABASE_URL=postgresql://user:password@host:5432/face_attendance
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-GITHUB_CLIENT_ID=your-github-client-id
-GITHUB_CLIENT_SECRET=your-github-client-secret
-ADMIN_USERS=your-email@gmail.com,your-github-username
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=your-secure-password
+SESSION_SECRET=random-secret-key
+# Optional OAuth:
+# GOOGLE_CLIENT_ID=...
+# GITHUB_CLIENT_ID=...
 ```
 
 ```bash
@@ -67,13 +68,15 @@ python3 -m http.server 3001
 
 ### 5. Access
 
-Open http://localhost:3001 and sign in with Google or GitHub.
+Open http://localhost:3001
 
-Only users/emails/usernames listed in `ADMIN_USERS` can register new employees.
+**Login Options:**
+- **Local**: Click Login → create account or login with username/password
+- **OAuth**: Click Login → use Google or GitHub
 
 ## Deployment
 
-### Backend (Railway/Render/Heroku)
+### Backend (CloudPanel/Railway/Render)
 
 1. Deploy backend code
 2. Set environment variables
@@ -83,12 +86,23 @@ Only users/emails/usernames listed in `ADMIN_USERS` can register new employees.
 
 Update `API_URL` in `index.html` to point to your backend.
 
+## Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `DATABASE_URL` | PostgreSQL connection string | Yes |
+| `ADMIN_USERNAME` | Default admin username | Yes |
+| `ADMIN_PASSWORD` | Default admin password | Yes |
+| `SESSION_SECRET` | Random string for sessions | Yes |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID | No |
+| `GITHUB_CLIENT_ID` | GitHub OAuth client ID | No |
+
 ## API Endpoints
 
+- `POST /auth/local/login` - Local login
+- `POST /auth/local/register` - Local registration
 - `GET /auth/google` - Google login
-- `GET /auth/google/callback` - Google OAuth callback
 - `GET /auth/github` - GitHub login
-- `GET /auth/github/callback` - GitHub OAuth callback
 - `GET /auth/logout` - Logout
 - `GET /api/me` - Current user
 - `GET /api/users` - List users (auth required)
