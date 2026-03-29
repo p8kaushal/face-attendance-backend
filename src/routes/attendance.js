@@ -13,6 +13,7 @@ function requireAuth(req, res, next) {
 router.get('/', requireAuth, async (req, res) => {
   try {
     const { date, userId } = req.query;
+    console.log('Querying attendance with date:', date, 'and userId:', userId);
     let sql = `
       SELECT a.id, a.user_id, u.employee_id, u.name, a.check_in, a.check_out, a.date 
       FROM attendance a 
@@ -25,7 +26,8 @@ router.get('/', requireAuth, async (req, res) => {
       params.push(date);
       conditions.push(`a.date = $${params.length}`);
     }
-    if (userId) {
+    if (userId && userId !== 'undefined') {
+      console.log('Filtering by userId:', userId);
       params.push(userId);
       conditions.push(`a.user_id = $${params.length}`);
     }
@@ -33,6 +35,8 @@ router.get('/', requireAuth, async (req, res) => {
       sql += ' WHERE ' + conditions.join(' AND ');
     }
     sql += ' ORDER BY a.check_in DESC';
+
+    console.log('Final SQL:', sql, 'with params:', params);
 
     const result = await query(sql, params);
     res.json(result.rows);
