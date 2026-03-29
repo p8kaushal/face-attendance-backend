@@ -68,7 +68,7 @@ router.post('/record', requireAuth, async (req, res) => {
   }
 });
 
-router.get('/users', requireAuth, async (req, res) => {
+router.get('/users', async (req, res) => {
   try {
     const result = await query(
       `SELECT id, employee_id, name, face_descriptor FROM users ORDER BY name`
